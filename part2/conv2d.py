@@ -33,7 +33,7 @@ out_pool_width = out_width // pool_size
 The shape of the output should be [batch_size, out_channels, out_pool_height, out_pool_width]
 
 """
-
+@nki.compiler.skip_middle_end_transformations
 @nki.jit
 def fused_conv2d_maxpool(X, W, bias, pool_size=1):
 
@@ -52,7 +52,7 @@ def fused_conv2d_maxpool(X, W, bias, pool_size=1):
     out_pool_width = out_width // pool_size
     
     # Can assume multiple of 128 to avoid using mask
-    assert in_channels % 128 == 0
+    assert in_channels % 128 == out_channels % 128 == 0
 
     # Can assume one PSUM bank can at least fit one row of the pixels
     assert nl.tile_size.gemm_moving_fmax >= out_width
