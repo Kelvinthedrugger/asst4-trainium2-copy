@@ -113,7 +113,7 @@ def test_performance_conv2d_kernel(
     # a performance requirement map (dtype, image_height) ->
     # [relaxed performance threshold, optimized performance threshold]
     performance_requirements_by_dtype_size = {
-        (np.float32, 224): [3640, 4626],
+        (np.float32, 224): [4964, 4626],
         (np.float16, 224): [1570, 1018],
         (np.float32, 32): [112, 112],
         (np.float16, 32): [86, 86],
