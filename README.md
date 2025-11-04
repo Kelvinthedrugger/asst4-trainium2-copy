@@ -96,7 +96,7 @@ As an example, the following kernel defines how to perform vector addition using
 Similar to how arguments to CUDA kernels are arrays in CUDA device global memory, the arguments to Python functions decorated with `@nki.jit` are tensors that reside in HBM accessible to the NeuronCore. The `@nki.compiler.skip_middle_end_transformations` decorator disables some compiler optimizations that can transform kernels in unexpected ways, which will make debugging easier.
 
 In the following code, `a_vec` and `b_vec` are assumed to be length 128 vectors in HBM. (The code will not work for vectors that are larger than 128. We'll explain why shortly.)
-```
+```python3
 @nki.compiler.skip_middle_end_transformations
 @nki.jit
 def vector_add_naive(a_vec, b_vec):
@@ -140,7 +140,7 @@ As a result, in the code above, since `a_vec` and `b_vec` are 1D vectors, their 
 
 To fix the code to work for vectors with a size greater than 128, we need to load the vectors in chunks (subsets of the original tensor). 
 
-```
+```python3
 @nki.compiler.skip_middle_end_transformations
 @nki.jit
 def vector_add_tiled(a_vec, b_vec):
@@ -213,7 +213,7 @@ In order to improve DMA transfer overhead, we will need to reshape our vectors s
 
 
 Take a look at `vector_add_stream`, which extends `vector_add_tiled` so that there are less DMA transfers:
-```
+```python3
 @nki.compiler.skip_middle_end_transformations
 @nki.jit
 def vector_add_stream(a_vec, b_vec):
@@ -367,7 +367,7 @@ The above image depicts the architecture of the Tensor Engine. The Tensor Engine
 ### Writing the kernel
 Here you'll try writing your own baby kernel for transposing a matrix using the tensor engine before moving on to a more complicated kernel involving actual matmuls in Part 2. Take a look at the starter code in `kernels.py`. Your kernel should accept a single 2D tensor of shape (M, N) as input and return a 2D tensor of shape (N, M). The only restriction on M and N is that both are divisible by 128, the maximum partition dimension.
 
-```
+```python3
 @nki.compiler.skip_middle_end_transformations
 @nki.jit
 def matrix_transpose(a_tensor):
@@ -413,7 +413,7 @@ Recall that the Vector Engine has the capability to operate on SBUF tiles of siz
 
 Given the constraints of the Tensor Engine, implementing matrix multiplication for arbitrary matrix dimensions on Trainium requires tiling the computation so it is performed as a sequence of matrix multiplications on fixed-size tiles. (This is similar to how vector addition in part 1 was tiled to work for large input vector sizes). The example below, which we modified from the [NKI tutorials](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/tutorials), demonstrates how to implement matrix multiplication using a tiled approach, where the tiles are sized to meet the Trainium Tensor engines tile size constraints. Note: a description of the code is provided after the code listing.
 
-```
+```python3
 @nki.compiler.skip_middle_end_transformations
 @nki.jit
 def nki_matmul_tiled_(lhsT, rhs, result):
@@ -538,7 +538,7 @@ In class we discussed one way to convert convolution with many filters into a si
 In this approach, the height and width dimensions of the input feature map are flattened into a single dimension, reshaping the input to `(Height × Width) × Input Channels​`. This reshaped input is then multiplied by each position of the filters, where `i` and `j` respectively range from `0` to `Filter Height - 1` and from `0` to `Filter Width - 1`. Each filter slice has a shape of `Input Channels × Output Channels`, and the resulting matrix multiplication contracts along the `Input Channels` dimension. To align the input with each filter slice, the input must be shifted by an offset corresponding to the filter’s current position `(i, j)`. The results of these matrix multiplications are accumulated to produce the output tensor.
 
 Below is the pseudocode for the described algorithm:
-```
+```python3
 - Have the input image with shape (Input Channels, Image Height * Image Width)
 - Have the filter weights with shape (Filter Height, Filter Weight, Input Channels, Output Channels)
 - Initialize the output to appropriate shape of (Output Channels, Output Height * Output Width)
